@@ -1,5 +1,31 @@
 'use strict';
 
+// =============================================================
+// SUPABASE KONFIGURATION
+// 1. Neues Supabase-Projekt anlegen (supabase.com)
+// 2. SQL ausführen (siehe unten)
+// 3. URL und anon key hier eintragen:
+// =============================================================
+const SUPABASE_URL  = 'DEINE_SUPABASE_URL';
+const SUPABASE_ANON = 'DEIN_SUPABASE_ANON_KEY';
+
+// SQL für Supabase (einmalig im SQL-Editor ausführen):
+// CREATE TABLE quiz_results (
+//   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+//   name text NOT NULL,
+//   truck_number text NOT NULL,
+//   score integer NOT NULL,
+//   wrong_count integer NOT NULL,
+//   completed_at timestamptz DEFAULT now()
+// );
+// ALTER TABLE quiz_results ENABLE ROW LEVEL SECURITY;
+// CREATE POLICY "anon insert" ON quiz_results FOR INSERT TO anon WITH CHECK (true);
+
+const supabaseReady = (SUPABASE_URL !== 'DEINE_SUPABASE_URL');
+const db = supabaseReady ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON) : null;
+
+// =============================================================
+
 const questions = [
   {
     id: 1,
@@ -115,7 +141,7 @@ const questions = [
     question: "Was gilt für die Ersthelfer*in auf dem Fahrzeug?",
     options: [
       "Nur bei mehr als 20 Personen auf dem Fahrzeug Pflicht",
-      "Muss erkennbar sein (z.B. Erste-Hilfe-Weste), von der Wagenleitung benannt werden, kann in Personalunion ausgeübt werden",
+      "Muss erkennbar sein, von der Wagenleitung benannt werden, kann in Personalunion ausgeübt werden",
       "Muss ein*e zertifizierte*r Sanitäter*in von außen sein",
       "Übernimmt automatisch die Fahrer*in"
     ],
@@ -125,24 +151,14 @@ const questions = [
     id: 11,
     category: "Sicherheitsseil",
     question: "Welchen Sicherheitsabstand muss das Seil um das Fahrzeug einhalten?",
-    options: [
-      "0,5 m",
-      "1,0 m",
-      "1,5 m",
-      "2,0 m"
-    ],
+    options: ["0,5 m", "1,0 m", "1,5 m", "2,0 m"],
     correct: 1
   },
   {
     id: 12,
     category: "Sicherheitsseil",
     question: "Welchen Mindestdurchmesser muss das Sicherheitsseil haben?",
-    options: [
-      "8 mm",
-      "10 mm",
-      "12 mm",
-      "15 mm"
-    ],
+    options: ["8 mm", "10 mm", "12 mm", "15 mm"],
     correct: 2
   },
   {
@@ -175,7 +191,7 @@ const questions = [
     question: "Bei welchen Fahrzeugen ist eine technische Abnahme durch die DEKRA vorgeschrieben?",
     options: [
       "Nur bei Fahrzeugen über 12 Tonnen",
-      "Bei allen Fahrzeugen mit Ladefläche, auf der Personen mitfahren, sowie Busse mit offenem Oberdeck oder Stromaggregat",
+      "Bei allen Fahrzeugen mit Ladefläche (Personen), Busse mit offenem Oberdeck oder Stromaggregat",
       "Nur bei Fahrzeugen, die Musik abspielen",
       "Bei allen Fahrzeugen, unabhängig von Aufbauten"
     ],
@@ -189,7 +205,7 @@ const questions = [
       "Es erhält eine 2-stündige Nachfrist zur Nachbesserung",
       "Es darf ohne Personen auf der Ladefläche mitfahren",
       "Es wird ausgeschlossen – die Teilnahmegebühr wird nicht erstattet",
-      "Die Wagenleitung kann eine Ausnahme bei der Demoleitung beantragen"
+      "Die Wagenleitung kann eine Ausnahme beantragen"
     ],
     correct: 2
   },
@@ -244,28 +260,47 @@ const questions = [
 ];
 
 const LABELS = ['A', 'B', 'C', 'D'];
-const CONFETTI_COLORS = ['#E40078', '#FFD700', '#FF6B35', '#00A550', '#004DFF', '#750787', '#FF4DA6'];
+const CONFETTI_COLORS = ['#E40078','#FFD700','#FF6B35','#00A550','#004DFF','#750787','#55CDFC','#F7A8B8'];
 
 let currentIndex = 0;
 let score = 0;
 let answered = false;
 let wrongAnswers = [];
+let participantName = '';
+let truckNumber = '';
 
-const startScreen  = document.getElementById('start-screen');
-const quizScreen   = document.getElementById('quiz-screen');
-const resultsScreen = document.getElementById('results-screen');
-const startBtn     = document.getElementById('start-btn');
-const nextBtn      = document.getElementById('next-btn');
-const restartBtn   = document.getElementById('restart-btn');
+// Screens
+const startScreen    = document.getElementById('start-screen');
+const registerScreen = document.getElementById('register-screen');
+const quizScreen     = document.getElementById('quiz-screen');
+const resultsScreen  = document.getElementById('results-screen');
+const paradeStrip    = document.getElementById('parade-strip');
 
-startBtn.addEventListener('click', startQuiz);
-nextBtn.addEventListener('click', nextQuestion);
-restartBtn.addEventListener('click', restartQuiz);
+document.getElementById('start-btn').addEventListener('click', () => show(registerScreen));
+document.getElementById('back-btn').addEventListener('click', () => show(startScreen));
+document.getElementById('register-btn').addEventListener('click', handleRegister);
+document.getElementById('next-btn').addEventListener('click', nextQuestion);
+document.getElementById('restart-btn').addEventListener('click', restartQuiz);
 
 function show(screen) {
-  [startScreen, quizScreen, resultsScreen].forEach(s => s.classList.remove('active'));
+  [startScreen, registerScreen, quizScreen, resultsScreen].forEach(s => s.classList.remove('active'));
   screen.classList.add('active');
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function handleRegister() {
+  const nameInput  = document.getElementById('input-name');
+  const truckInput = document.getElementById('input-truck');
+  const errEl      = document.getElementById('reg-error');
+
+  if (!nameInput.value.trim() || !truckInput.value.trim()) {
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
+  participantName = nameInput.value.trim();
+  truckNumber     = truckInput.value.trim();
+  startQuiz();
 }
 
 function startQuiz() {
@@ -273,13 +308,15 @@ function startQuiz() {
   score = 0;
   answered = false;
   wrongAnswers = [];
+  paradeStrip.style.display = 'block';
+  updateParade();
   show(quizScreen);
   renderQuestion();
 }
 
 function renderQuestion() {
   answered = false;
-  nextBtn.style.display = 'none';
+  document.getElementById('next-btn').style.display = 'none';
 
   const q = questions[currentIndex];
   document.getElementById('q-current').textContent = currentIndex + 1;
@@ -297,7 +334,6 @@ function renderQuestion() {
 
   const list = document.getElementById('options-list');
   list.innerHTML = '';
-
   q.options.forEach((opt, i) => {
     const btn = document.createElement('button');
     btn.className = 'option-btn';
@@ -306,10 +342,9 @@ function renderQuestion() {
     list.appendChild(btn);
   });
 
-  // card re-animate
   const card = document.getElementById('question-card');
   card.style.animation = 'none';
-  card.offsetHeight; // reflow
+  card.offsetHeight;
   card.style.animation = '';
 }
 
@@ -319,54 +354,43 @@ function selectAnswer(chosen) {
 
   const q = questions[currentIndex];
   const correct = q.correct;
-  const buttons = document.querySelectorAll('.option-btn');
   const isCorrect = chosen === correct;
+  const buttons = document.querySelectorAll('.option-btn');
 
   buttons.forEach((btn, i) => {
     btn.disabled = true;
-    if (i === correct) {
-      btn.classList.add('correct');
-    } else if (i === chosen && !isCorrect) {
-      btn.classList.add('wrong');
-    } else {
-      btn.classList.add('dimmed');
-    }
+    if (i === correct) btn.classList.add('correct');
+    else if (i === chosen) btn.classList.add('wrong');
+    else btn.classList.add('dimmed');
   });
 
-  const fb = document.getElementById('feedback-box');
-  const fi = document.getElementById('feedback-inner');
+  const fb  = document.getElementById('feedback-box');
+  const fi  = document.getElementById('feedback-inner');
   fb.style.display = 'block';
+
+  const checkSvg = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00A550" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><polyline points="20 6 9 17 4 12"/></svg>`;
+  const xSvg     = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E53935" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
 
   if (isCorrect) {
     score++;
     document.getElementById('score-live').textContent = score;
     fb.classList.add('fb-correct');
-    const reactions = [
-      'Richtig! Super gemacht.',
-      'Korrekt! Gut aufgepasst.',
-      'Ja, genau! Das stimmt.',
-      'Richtig! Weiter so.',
-      'Sehr gut! Alles klar!'
-    ];
-    fi.innerHTML = `<span class="fb-icon">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00A550" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="20 6 9 17 4 12"/>
-      </svg></span> ${reactions[Math.floor(Math.random() * reactions.length)]}`;
+    const msgs = ['Richtig! Super gemacht.', 'Korrekt! Gut aufgepasst.', 'Ja, genau!', 'Richtig! Weiter so.'];
+    fi.innerHTML = checkSvg + msgs[Math.floor(Math.random() * msgs.length)];
   } else {
     fb.classList.add('fb-wrong');
-    fi.innerHTML = `<span class="fb-icon">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E53935" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-      </svg></span> Leider falsch. Richtig: <strong>${LABELS[correct]}) ${q.options[correct]}</strong>`;
+    fi.innerHTML = xSvg + `Leider falsch. Richtig: <strong>${LABELS[correct]}) ${q.options[correct]}</strong>`;
     wrongAnswers.push({ q: q.question, correct: q.options[correct], label: LABELS[correct] });
   }
 
+  const nextBtn = document.getElementById('next-btn');
   nextBtn.style.display = 'block';
   nextBtn.textContent = currentIndex === questions.length - 1 ? 'Auswertung anzeigen' : 'Weiter';
 }
 
 function nextQuestion() {
   currentIndex++;
+  updateParade();
   if (currentIndex >= questions.length) {
     showResults();
   } else {
@@ -374,7 +398,35 @@ function nextQuestion() {
   }
 }
 
-function showResults() {
+// ===== PARADE =====
+function updateParade() {
+  const total = questions.length;
+  const progress = currentIndex / total; // 0 → 1
+
+  // Lead truck: starts at -5%, reaches 82% (just before finish line at 88%)
+  const leadPct = -5 + progress * 87;
+  // Trucks behind: offset by 18% and 36% respectively
+  const t2pct = leadPct - 18;
+  const t3pct = leadPct - 36;
+  // People between trucks
+  const p1pct = leadPct - 10;
+  const p2pct = leadPct - 24;
+
+  setLeft('ptruck1',  leadPct);
+  setLeft('ptruck2',  t2pct);
+  setLeft('ptruck3',  t3pct);
+  setLeft('pperson1', p1pct);
+  setLeft('pperson2', p2pct);
+}
+
+function setLeft(id, pct) {
+  const el = document.getElementById(id);
+  if (el) el.style.left = pct + '%';
+}
+
+// ===== RESULTS =====
+async function showResults() {
+  paradeStrip.style.display = 'none';
   show(resultsScreen);
   document.getElementById('progress-bar').style.width = '100%';
   document.getElementById('score-number').textContent = score;
@@ -383,21 +435,21 @@ function showResults() {
   let title, msg;
   if (pct === 100) {
     title = 'Perfekt!';
-    msg = 'Alle 20 Fragen richtig! Du bist bereit für den CSD. Wir sehen uns am 25. Juli!';
+    msg = 'Alle 20 Fragen richtig! Du bist vollständig vorbereitet. Wir sehen uns am 25. Juli!';
     launchConfetti();
   } else if (pct >= 80) {
     title = 'Sehr gut!';
-    msg = 'Fast alle Fragen richtig. Schau dir die falschen Antworten kurz an und du bist top vorbereitet!';
+    msg = 'Fast alle Fragen richtig. Schau dir die falsch beantworteten kurz an und du bist top!';
     launchConfetti();
   } else if (pct >= 60) {
     title = 'Gut gemacht!';
-    msg = 'Solide Grundlage! Die markierten Fragen noch einmal durchlesen und du hast alles drauf.';
+    msg = 'Solide Grundlage! Die markierten Fragen noch einmal lesen und du hast alles drauf.';
   } else if (pct >= 40) {
-    title = 'Noch etwas Luft nach oben';
-    msg = 'Einige Regeln sitzen noch nicht ganz. Ein zweiter Versuch lohnt sich auf jeden Fall!';
+    title = 'Noch etwas Luft';
+    msg = 'Einige Regeln sitzen noch nicht. Ein zweiter Versuch lohnt sich!';
   } else {
     title = 'Auf ins Lernen!';
-    msg = 'Die Teilnahmebedingungen solltest du vor der Schulung noch einmal gründlich lesen. Du schaffst das!';
+    msg = 'Die Teilnahmebedingungen bitte noch einmal gründlich durchlesen. Du schaffst das!';
   }
 
   document.getElementById('result-title').textContent = title;
@@ -407,17 +459,13 @@ function showResults() {
   const starsEl = document.getElementById('result-stars');
   starsEl.innerHTML = '';
   for (let i = 0; i < 5; i++) {
-    const filled = i < fullStars;
-    starsEl.innerHTML += `<span class="star">
-      <svg viewBox="0 0 24 24" fill="${filled ? '#FFD700' : '#ddd'}" stroke="${filled ? '#e6a800' : '#ccc'}" stroke-width="1.5">
-        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-      </svg></span>`;
+    const f = i < fullStars;
+    starsEl.innerHTML += `<svg viewBox="0 0 24 24" fill="${f ? '#FFD700' : '#ddd'}" stroke="${f ? '#e6a800' : '#ccc'}" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
   }
 
   const wrongSection = document.getElementById('wrong-section');
-  const wrongList = document.getElementById('wrong-list');
+  const wrongList    = document.getElementById('wrong-list');
   wrongList.innerHTML = '';
-
   if (wrongAnswers.length > 0) {
     wrongSection.style.display = 'block';
     wrongAnswers.forEach(w => {
@@ -429,34 +477,64 @@ function showResults() {
   } else {
     wrongSection.style.display = 'none';
   }
+
+  await saveResult();
+}
+
+async function saveResult() {
+  const statusEl = document.getElementById('save-status');
+  if (!supabaseReady) {
+    statusEl.textContent = '(Supabase nicht konfiguriert – Ergebnis nicht gespeichert)';
+    statusEl.className = 'save-status error';
+    return;
+  }
+  try {
+    const { error } = await db.from('quiz_results').insert({
+      name:         participantName,
+      truck_number: truckNumber,
+      score:        score,
+      wrong_count:  wrongAnswers.length
+    });
+    if (error) throw error;
+    statusEl.textContent = 'Ergebnis gespeichert.';
+    statusEl.className = 'save-status';
+  } catch (e) {
+    statusEl.textContent = 'Speichern fehlgeschlagen – bitte Screenshot machen.';
+    statusEl.className = 'save-status error';
+    console.error(e);
+  }
 }
 
 function restartQuiz() {
   removeConfetti();
-  startQuiz();
+  // Formular-Felder leeren für neuen Durchlauf
+  document.getElementById('input-name').value = '';
+  document.getElementById('input-truck').value = '';
+  participantName = '';
+  truckNumber = '';
+  show(registerScreen);
 }
 
+// ===== CONFETTI =====
 function launchConfetti() {
   removeConfetti();
   const wrap = document.createElement('div');
   wrap.className = 'confetti-wrap';
   wrap.id = 'confetti-wrap';
   document.body.appendChild(wrap);
-
-  for (let i = 0; i < 60; i++) {
-    const piece = document.createElement('div');
-    piece.className = 'confetti-piece';
-    piece.style.left = Math.random() * 100 + 'vw';
-    piece.style.background = CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)];
-    piece.style.width = (8 + Math.random() * 8) + 'px';
-    piece.style.height = (10 + Math.random() * 10) + 'px';
-    piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
-    const duration = 2.5 + Math.random() * 2.5;
+  for (let i = 0; i < 70; i++) {
+    const p = document.createElement('div');
+    p.className = 'confetti-piece';
+    p.style.left = Math.random() * 100 + 'vw';
+    p.style.background = CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)];
+    p.style.width  = (6 + Math.random() * 8) + 'px';
+    p.style.height = (8 + Math.random() * 10) + 'px';
+    p.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    const dur   = 2.5 + Math.random() * 2.5;
     const delay = Math.random() * 1.5;
-    piece.style.animation = `confettiFall ${duration}s ${delay}s linear forwards`;
-    wrap.appendChild(piece);
+    p.style.animation = `confettiFall ${dur}s ${delay}s linear forwards`;
+    wrap.appendChild(p);
   }
-
   setTimeout(removeConfetti, 6000);
 }
 

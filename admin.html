@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin · Wagenleiterschulung CSD 2026</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Paytone+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: #1a0a20;
+      color: #f0e0f8;
+      min-height: 100vh;
+      padding: 24px 16px 60px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .header h1 {
+      font-family: 'Paytone One', sans-serif;
+      font-size: 24px;
+      color: #E40078;
+      text-shadow: 2px 2px 0 #000;
+    }
+    .header .badge {
+      background: #E40078;
+      color: white;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 4px 12px;
+      border-radius: 999px;
+      border: 2px solid #fff;
+    }
+
+    /* Login */
+    .login-box {
+      max-width: 480px;
+      margin: 60px auto;
+      background: #2a1a38;
+      border: 3px solid #E40078;
+      border-radius: 16px;
+      box-shadow: 0 6px 0 #000;
+      padding: 32px;
+    }
+    .login-box h2 {
+      font-family: 'Paytone One', sans-serif;
+      color: #E40078;
+      font-size: 20px;
+      margin-bottom: 6px;
+    }
+    .login-box p {
+      font-size: 13px;
+      color: #ccc;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    .login-box label {
+      display: block;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: #E40078;
+      margin-bottom: 6px;
+    }
+    .login-box input {
+      width: 100%;
+      background: #1a0a20;
+      border: 2px solid #555;
+      border-radius: 8px;
+      padding: 10px 13px;
+      font-size: 14px;
+      font-family: 'Nunito', sans-serif;
+      color: #f0e0f8;
+      margin-bottom: 16px;
+    }
+    .login-box input:focus { outline: none; border-color: #E40078; }
+    .btn-login {
+      width: 100%;
+      background: #E40078;
+      color: white;
+      font-family: 'Paytone One', sans-serif;
+      font-size: 18px;
+      border: 3px solid #000;
+      border-radius: 12px;
+      padding: 14px;
+      cursor: pointer;
+      box-shadow: 0 5px 0 #000;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .btn-login:hover { transform: translateY(-2px); box-shadow: 0 7px 0 #000; }
+    .login-error { color: #ff6b6b; font-size: 13px; font-weight: 700; margin-top: 10px; text-align: center; }
+
+    /* Dashboard */
+    #dashboard { display: none; max-width: 900px; margin: 0 auto; }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: #2a1a38;
+      border: 2px solid #E40078;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      box-shadow: 0 4px 0 #000;
+    }
+    .stat-num {
+      font-family: 'Paytone One', sans-serif;
+      font-size: 36px;
+      color: #E40078;
+      line-height: 1;
+    }
+    .stat-label { font-size: 12px; font-weight: 700; color: #ccc; margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
+
+    .section-title {
+      font-family: 'Paytone One', sans-serif;
+      font-size: 16px;
+      color: #FFD700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      margin-bottom: 12px;
+      margin-top: 28px;
+    }
+
+    /* Search & Filter */
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .toolbar input {
+      flex: 1;
+      min-width: 200px;
+      background: #2a1a38;
+      border: 2px solid #555;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 14px;
+      font-family: 'Nunito', sans-serif;
+      color: #f0e0f8;
+    }
+    .toolbar input:focus { outline: none; border-color: #E40078; }
+    .btn-refresh {
+      background: #E40078;
+      color: white;
+      font-family: 'Paytone One', sans-serif;
+      font-size: 14px;
+      border: 2px solid #000;
+      border-radius: 8px;
+      padding: 8px 18px;
+      cursor: pointer;
+      box-shadow: 0 3px 0 #000;
+    }
+    .btn-export {
+      background: #FFD700;
+      color: #1a0a00;
+      font-family: 'Paytone One', sans-serif;
+      font-size: 14px;
+      border: 2px solid #000;
+      border-radius: 8px;
+      padding: 8px 18px;
+      cursor: pointer;
+      box-shadow: 0 3px 0 #000;
+    }
+
+    /* Table */
+    .table-wrap {
+      overflow-x: auto;
+      border: 2px solid #444;
+      border-radius: 12px;
+      box-shadow: 0 4px 0 #000;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th {
+      background: #2a1a38;
+      color: #E40078;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 12px 14px;
+      text-align: left;
+      border-bottom: 2px solid #444;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+    th:hover { color: #FF4DA6; }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #2a1a38;
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:nth-child(even) { background: rgba(228,0,120,0.04); }
+    tr:hover { background: rgba(228,0,120,0.10); }
+
+    .score-badge {
+      display: inline-block;
+      font-weight: 800;
+      font-size: 14px;
+      padding: 2px 10px;
+      border-radius: 999px;
+      color: white;
+    }
+    .score-perfect { background: #00A550; }
+    .score-good    { background: #007E89; }
+    .score-ok      { background: #FF8C00; }
+    .score-low     { background: #E40078; }
+    .score-fail    { background: #E53935; }
+
+    .pct-bar-bg {
+      background: #1a0a20;
+      border-radius: 999px;
+      height: 8px;
+      min-width: 60px;
+      overflow: hidden;
+    }
+    .pct-bar-fill { height: 100%; border-radius: 999px; transition: width 0.3s; }
+
+    .time-cell { font-size: 12px; color: #aaa; white-space: nowrap; }
+
+    /* Not-done list */
+    .notdone-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 8px;
+    }
+    .notdone-chip {
+      background: #2a1a38;
+      border: 2px solid #E40078;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #f0e0f8;
+    }
+
+    .loading { text-align: center; padding: 40px; color: #aaa; font-size: 16px; }
+    .empty-state { text-align: center; padding: 30px; color: #888; font-size: 15px; }
+
+    .logout-btn {
+      background: transparent;
+      border: 2px solid #555;
+      border-radius: 8px;
+      color: #aaa;
+      font-size: 13px;
+      font-family: 'Nunito', sans-serif;
+      padding: 6px 14px;
+      cursor: pointer;
+      margin-left: auto;
+    }
+    .logout-btn:hover { border-color: #E40078; color: #E40078; }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-view">
+  <div class="login-box">
+    <h2>Admin · CSD Wagenleiterschulung</h2>
+    <p>Gib deinen Supabase Service-Role-Key ein, um die Ergebnisse einzusehen. Der Key wird nur im Browser gespeichert und nie übertragen.</p>
+    <label>Supabase URL</label>
+    <input type="text" id="admin-url" placeholder="https://xxxx.supabase.co"/>
+    <label>Service Role Key</label>
+    <input type="password" id="admin-key" placeholder="eyJ..."/>
+    <button class="btn-login" onclick="adminLogin()">Einloggen</button>
+    <p class="login-error" id="login-error" style="display:none"></p>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="header">
+    <svg viewBox="0 0 125 143" width="36" xmlns="http://www.w3.org/2000/svg">
+      <polygon fill="#E40078" points="117.7,136.3 107.2,141.7 100.8,134.3 101.2,132.6 109.8,127.2 107.9,122.5 70,93.2 33.9,134.4 6.3,125 9.3,114.2 16.4,113.8 22.8,120.9 26.2,120.9 32.8,99.7 45.7,83.5 42.3,76.4 36.3,76.2 30.5,73.6 0,50.7 1.1,46.4 9.1,40.7 19.7,52.6 39.6,60.7 53.1,36.2 53.9,34.7 49.6,31.4 46.2,31.2 37.7,30 35.9,27.5 50.5,26.4 33.3,21.9 28,16.5 31.4,15 34.6,19.3 51.6,21.9 51,20.3 38,13.1 34,4 47.6,3.6 53.4,0.9 76.7,2.7 83.1,1.5 86.1,7.1 84.3,11.3 78.3,42.9 88.5,75.7 91.6,76.4 93.3,80.5 92.5,81.6 91.4,83.7 123.7,116.1 117.7,136.3"/>
+    </svg>
+    <h1>Wagenleiterschulung 2026</h1>
+    <span class="badge">Admin</span>
+    <button class="logout-btn" onclick="logout()">Abmelden</button>
+  </div>
+
+  <div id="dash-content" class="loading">Lade Daten...</div>
+</div>
+
+<script>
+let adminDb = null;
+let allResults = [];
+let sortKey = 'completed_at';
+let sortAsc = false;
+let searchTerm = '';
+
+const TOTAL_EXPECTED = 90;
+
+async function adminLogin() {
+  const url = document.getElementById('admin-url').value.trim();
+  const key = document.getElementById('admin-key').value.trim();
+  const errEl = document.getElementById('login-error');
+  errEl.style.display = 'none';
+
+  if (!url || !key) {
+    errEl.textContent = 'URL und Key bitte beide eintragen.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  try {
+    adminDb = window.supabase.createClient(url, key);
+    const { data, error } = await adminDb.from('quiz_results').select('count', { count: 'exact', head: true });
+    if (error) throw error;
+    document.getElementById('login-view').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    loadDashboard();
+  } catch (e) {
+    errEl.textContent = 'Verbindung fehlgeschlagen: ' + (e.message || 'Ungültige Daten');
+    errEl.style.display = 'block';
+    adminDb = null;
+  }
+}
+
+async function loadDashboard() {
+  const content = document.getElementById('dash-content');
+  content.innerHTML = '<div class="loading">Lade Ergebnisse...</div>';
+
+  const { data, error } = await adminDb
+    .from('quiz_results')
+    .select('*')
+    .order('completed_at', { ascending: false });
+
+  if (error) {
+    content.innerHTML = `<div class="loading" style="color:#ff6b6b">Fehler: ${error.message}</div>`;
+    return;
+  }
+
+  allResults = data || [];
+  renderDashboard();
+}
+
+function renderDashboard() {
+  const filtered = allResults.filter(r => {
+    if (!searchTerm) return true;
+    const t = searchTerm.toLowerCase();
+    return r.name.toLowerCase().includes(t) || r.truck_number.toLowerCase().includes(t);
+  });
+
+  const sorted = [...filtered].sort((a, b) => {
+    let va = a[sortKey], vb = b[sortKey];
+    if (typeof va === 'string') va = va.toLowerCase();
+    if (typeof vb === 'string') vb = vb.toLowerCase();
+    if (va < vb) return sortAsc ? -1 : 1;
+    if (va > vb) return sortAsc ? 1 : -1;
+    return 0;
+  });
+
+  const total = allResults.length;
+  const avg = total > 0 ? (allResults.reduce((s, r) => s + r.score, 0) / total) : 0;
+  const perfect = allResults.filter(r => r.score === 20).length;
+  const notDone = TOTAL_EXPECTED - total;
+
+  const html = `
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-num">${total}</div>
+        <div class="stat-label">Teilgenommen</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:${notDone > 0 ? '#E40078' : '#00A550'}">${notDone > 0 ? notDone : 0}</div>
+        <div class="stat-label">Noch ausstehend</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">${avg.toFixed(1)}</div>
+        <div class="stat-label">Ø Ergebnis / 20</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">${perfect}</div>
+        <div class="stat-label">Perfekte Ergebnisse</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">${Math.round((total / TOTAL_EXPECTED) * 100)}%</div>
+        <div class="stat-label">Abschlussquote</div>
+      </div>
+    </div>
+
+    <p class="section-title">Alle Ergebnisse (${total})</p>
+
+    <div class="toolbar">
+      <input type="text" id="search-input" placeholder="Name oder Wagen suchen..." value="${searchTerm}" oninput="onSearch(this.value)"/>
+      <button class="btn-refresh" onclick="loadDashboard()">Aktualisieren</button>
+      <button class="btn-export" onclick="exportCSV()">CSV Export</button>
+    </div>
+
+    ${sorted.length === 0 ? '<div class="empty-state">Keine Einträge gefunden.</div>' : `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th onclick="setSort('name')">Name ${sortIcon('name')}</th>
+            <th onclick="setSort('truck_number')">Wagen ${sortIcon('truck_number')}</th>
+            <th onclick="setSort('score')">Ergebnis ${sortIcon('score')}</th>
+            <th>Fortschritt</th>
+            <th onclick="setSort('completed_at')">Zeitpunkt ${sortIcon('completed_at')}</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${sorted.map(r => {
+            const pct = Math.round((r.score / 20) * 100);
+            const cls = r.score === 20 ? 'score-perfect' : r.score >= 16 ? 'score-good' : r.score >= 12 ? 'score-ok' : r.score >= 8 ? 'score-low' : 'score-fail';
+            const barColor = r.score === 20 ? '#00A550' : r.score >= 16 ? '#007E89' : r.score >= 12 ? '#FF8C00' : '#E40078';
+            const dt = new Date(r.completed_at);
+            const dtStr = dt.toLocaleDateString('de-DE', {day:'2-digit',month:'2-digit'}) + ' ' + dt.toLocaleTimeString('de-DE', {hour:'2-digit',minute:'2-digit'});
+            return `<tr>
+              <td><strong>${esc(r.name)}</strong></td>
+              <td>${esc(r.truck_number)}</td>
+              <td><span class="score-badge ${cls}">${r.score} / 20</span></td>
+              <td>
+                <div class="pct-bar-bg">
+                  <div class="pct-bar-fill" style="width:${pct}%;background:${barColor}"></div>
+                </div>
+                <span style="font-size:11px;color:#aaa">${pct}%</span>
+              </td>
+              <td class="time-cell">${dtStr}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`}
+  `;
+
+  document.getElementById('dash-content').innerHTML = html;
+}
+
+function sortIcon(key) {
+  if (sortKey !== key) return '';
+  return sortAsc ? '↑' : '↓';
+}
+
+function setSort(key) {
+  if (sortKey === key) sortAsc = !sortAsc;
+  else { sortKey = key; sortAsc = false; }
+  renderDashboard();
+}
+
+function onSearch(val) {
+  searchTerm = val;
+  renderDashboard();
+}
+
+function exportCSV() {
+  const rows = [['Name','Wagennummer','Ergebnis','Falsch','Zeitpunkt']];
+  allResults.forEach(r => {
+    const dt = new Date(r.completed_at).toLocaleString('de-DE');
+    rows.push([r.name, r.truck_number, r.score, r.wrong_count, dt]);
+  });
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'csd2026_wagenleiterschulung.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function logout() {
+  adminDb = null;
+  allResults = [];
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('login-view').style.display = 'block';
+  document.getElementById('admin-url').value = '';
+  document.getElementById('admin-key').value = '';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('login-view').style.display !== 'none') adminLogin();
+});
+</script>
+</body>
+</html>
