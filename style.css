@@ -14,7 +14,7 @@
   --radius:    14px;
   --border:    2px solid #0A0A0A;
   --shadow:    4px 4px 0 #0A0A0A;
-  --parade-h:  90px;
+  --parade-h:  74px;
 }
 
 html {
@@ -379,9 +379,7 @@ body {
 }
 .option-btn.wrong .option-label { background: var(--red); }
 .option-btn.dimmed {
-  opacity: 0.35;
-  padding: 7px 14px;
-  font-size: 13px;
+  display: none; /* Nach Antwort verschwinden – mehr Platz für Weiter-Button */
 }
 
 /* Feedback */
