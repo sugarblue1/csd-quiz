@@ -367,6 +367,8 @@ function selectAnswer(chosen) {
   const nextBtn = document.getElementById('next-btn');
   nextBtn.style.display = 'block';
   nextBtn.textContent = currentIndex === questions.length - 1 ? 'Auswertung anzeigen' : 'Weiter';
+  // Weiter-Button immer ins Sichtfeld scrollen (iOS Fix)
+  setTimeout(() => nextBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 120);
 }
 
 function nextQuestion() {
@@ -417,7 +419,8 @@ function updateParade() {
 
 function setLeft(id, pct) {
   const el = document.getElementById(id);
-  if (el) el.style.left = pct + '%';
+  // translateX in vw statt left in % → kein iOS-Horizontalscroll
+  if (el) el.style.transform = 'translateX(' + pct + 'vw)';
 }
 
 // ===== RESULTS =====
