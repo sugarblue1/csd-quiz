@@ -407,20 +407,35 @@ function updateParade() {
   const L = -5 + (currentIndex / questions.length) * 87;
 
   setLeft('ptruck1',   L);
-  setLeft('pperson1',  L - 11);
-  setLeft('pperson2',  L - 16);
-  setLeft('pperson3',  L - 21);
-  setLeft('pperson4',  L - 26);
-  setLeft('ptruck2',   L - 33);
-  setLeft('pperson5',  L - 43);
-  setLeft('pperson6',  L - 48);
-  setLeft('pperson7',  L - 53);
-  setLeft('ptruck3',   L - 60);
-  setLeft('pperson8',  L - 68);
-  setLeft('pperson9',  L - 73);
-  setLeft('pperson10', L - 78);
-  setLeft('pperson11', L - 83);
-  setLeft('pperson12', L - 88);
+  // Gruppe 1: 8 Personen dicht hinter Truck 1 (2,5% Abstände)
+  setLeft('pperson1',  L - 26);
+  setLeft('pperson2',  L - 28.5);
+  setLeft('pperson3',  L - 31);
+  setLeft('pperson4',  L - 33.5);
+  setLeft('pperson5',  L - 36);
+  setLeft('pperson6',  L - 38.5);
+  setLeft('pperson7',  L - 41);
+  setLeft('pperson8',  L - 43.5);
+  setLeft('ptruck2',   L - 50);
+  // Gruppe 2: 8 Personen hinter Truck 2
+  setLeft('pperson9',  L - 70);
+  setLeft('pperson10', L - 72.5);
+  setLeft('pperson11', L - 75);
+  setLeft('pperson12', L - 77.5);
+  setLeft('pperson13', L - 80);
+  setLeft('pperson14', L - 82.5);
+  setLeft('pperson15', L - 85);
+  setLeft('pperson16', L - 87.5);
+  setLeft('ptruck3',   L - 94);
+  // Gruppe 3: 8 Personen hinter Truck 3
+  setLeft('pperson17', L - 112);
+  setLeft('pperson18', L - 114.5);
+  setLeft('pperson19', L - 117);
+  setLeft('pperson20', L - 119.5);
+  setLeft('pperson21', L - 122);
+  setLeft('pperson22', L - 124.5);
+  setLeft('pperson23', L - 127);
+  setLeft('pperson24', L - 129.5);
 }
 
 function setLeft(id, pct) {

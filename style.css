@@ -481,19 +481,18 @@ body {
   filter: drop-shadow(-3px 0 6px rgba(0,0,0,0.5));
 }
 
-/* Verschiedene Lauf-Rhythmen und Höhen */
-.pp1  { animation-delay: 0s; }
-.pp2  { animation-delay: 0.15s; bottom: 24px; }
-.pp3  { animation-delay: 0.08s; }
-.pp4  { animation-delay: 0.22s; bottom: 26px; }
-.pp5  { animation-delay: 0.30s; }
-.pp6  { animation-delay: 0.05s; bottom: 24px; }
-.pp7  { animation-delay: 0.18s; }
-.pp8  { animation-delay: 0.12s; bottom: 22px; }
-.pp9  { animation-delay: 0.25s; }
-.pp10 { animation-delay: 0.07s; bottom: 24px; }
-.pp11 { animation-delay: 0.35s; }
-.pp12 { animation-delay: 0.20s; bottom: 22px; }
+/* Lauf-Rhythmen – jede zweite Person leicht versetzt für Massen-Effekt */
+.pp1,.pp3,.pp5,.pp7,.pp9,.pp11,.pp13,.pp15,.pp17,.pp19,.pp21,.pp23 { animation-delay: 0s; }
+.pp2,.pp4,.pp6,.pp8,.pp10,.pp12,.pp14,.pp16,.pp18,.pp20,.pp22,.pp24 { animation-delay: 0.20s; bottom: 26px; }
+
+/* Personen auf den Trucks – hüpfen */
+@keyframes truckHop {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-5px); }
+}
+.thop  { animation: truckHop 0.55s ease-in-out infinite; transform-box: fill-box; transform-origin: center bottom; }
+.thop2 { animation: truckHop 0.55s 0.18s ease-in-out infinite; transform-box: fill-box; transform-origin: center bottom; }
+.thop3 { animation: truckHop 0.55s 0.36s ease-in-out infinite; transform-box: fill-box; transform-origin: center bottom; }
 
 /* Results */
 .result-bear { display: flex; justify-content: center; margin: 20px 0 12px; }
