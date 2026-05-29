@@ -1,29 +1,6 @@
 'use strict';
 
-// =============================================================
-// SUPABASE KONFIGURATION
-// 1. Neues Supabase-Projekt anlegen (supabase.com)
-// 2. SQL ausführen (siehe unten)
-// 3. URL und anon key hier eintragen:
-// =============================================================
-const SUPABASE_URL  = 'DEINE_SUPABASE_URL';
-const SUPABASE_ANON = 'DEIN_SUPABASE_ANON_KEY';
-
-// SQL für Supabase (einmalig im SQL-Editor ausführen):
-// CREATE TABLE quiz_results (
-//   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-//   name text NOT NULL,
-//   wagon_number text NOT NULL,
-//   wagon_name text NOT NULL,
-//   score integer NOT NULL,
-//   wrong_count integer NOT NULL,
-//   completed_at timestamptz DEFAULT now()
-// );
-// ALTER TABLE quiz_results ENABLE ROW LEVEL SECURITY;
-// CREATE POLICY "anon insert" ON quiz_results FOR INSERT TO anon WITH CHECK (true);
-
-const supabaseReady = (SUPABASE_URL !== 'DEINE_SUPABASE_URL');
-const db = supabaseReady ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON) : null;
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxC2Vkg4PKJcHullR-ai1Yl-6X1c8kfI2OA0mk95piuyEy8WV-yPQ1ofhDKkkZKu33LzQ/exec';
 
 // =============================================================
 
@@ -502,26 +479,20 @@ async function showResults() {
 
 async function saveResult() {
   const statusEl = document.getElementById('save-status');
-  if (!supabaseReady) {
-    statusEl.textContent = '(Supabase nicht konfiguriert – Ergebnis nicht gespeichert)';
-    statusEl.className = 'save-status error';
-    return;
-  }
   try {
-    const { error } = await db.from('quiz_results').insert({
+    const params = new URLSearchParams({
       name:         participantName,
       wagon_number: wagonNumber,
       wagon_name:   wagonName,
       score:        score,
-      wrong_count:  wrongAnswers.length
+      wrong:        wrongAnswers.length
     });
-    if (error) throw error;
+    await fetch(SHEETS_URL + '?' + params.toString(), { mode: 'no-cors' });
     statusEl.textContent = 'Ergebnis gespeichert.';
     statusEl.className = 'save-status';
   } catch (e) {
     statusEl.textContent = 'Speichern fehlgeschlagen – bitte Screenshot machen.';
     statusEl.className = 'save-status error';
-    console.error(e);
   }
 }
 
