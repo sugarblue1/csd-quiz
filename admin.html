@@ -410,7 +410,8 @@ function renderDashboard() {
         <thead>
           <tr>
             <th onclick="setSort('name')">Name ${sortIcon('name')}</th>
-            <th onclick="setSort('truck_number')">Wagen ${sortIcon('truck_number')}</th>
+            <th onclick="setSort('wagon_number')">Wagennr. ${sortIcon('wagon_number')}</th>
+            <th onclick="setSort('wagon_name')">Wagenname ${sortIcon('wagon_name')}</th>
             <th onclick="setSort('score')">Ergebnis ${sortIcon('score')}</th>
             <th>Fortschritt</th>
             <th onclick="setSort('completed_at')">Zeitpunkt ${sortIcon('completed_at')}</th>
@@ -425,7 +426,8 @@ function renderDashboard() {
             const dtStr = dt.toLocaleDateString('de-DE', {day:'2-digit',month:'2-digit'}) + ' ' + dt.toLocaleTimeString('de-DE', {hour:'2-digit',minute:'2-digit'});
             return `<tr>
               <td><strong>${esc(r.name)}</strong></td>
-              <td>${esc(r.truck_number)}</td>
+              <td>${esc(r.wagon_number || '')}</td>
+              <td>${esc(r.wagon_name || '')}</td>
               <td><span class="score-badge ${cls}">${r.score} / 20</span></td>
               <td>
                 <div class="pct-bar-bg">

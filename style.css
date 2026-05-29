@@ -481,14 +481,19 @@ body {
   filter: drop-shadow(-3px 0 6px rgba(0,0,0,0.5));
 }
 
-/* Verschiedene Lauf-Rhythmen */
-.pp1 { animation-delay: 0s; }
-.pp2 { animation-delay: 0.15s; bottom: 24px; }
-.pp3 { animation-delay: 0.08s; }
-.pp4 { animation-delay: 0.22s; bottom: 24px; }
-.pp5 { animation-delay: 0.30s; }
-.pp6 { animation-delay: 0.05s; bottom: 24px; }
-.pp7 { animation-delay: 0.18s; }
+/* Verschiedene Lauf-Rhythmen und Höhen */
+.pp1  { animation-delay: 0s; }
+.pp2  { animation-delay: 0.15s; bottom: 24px; }
+.pp3  { animation-delay: 0.08s; }
+.pp4  { animation-delay: 0.22s; bottom: 26px; }
+.pp5  { animation-delay: 0.30s; }
+.pp6  { animation-delay: 0.05s; bottom: 24px; }
+.pp7  { animation-delay: 0.18s; }
+.pp8  { animation-delay: 0.12s; bottom: 22px; }
+.pp9  { animation-delay: 0.25s; }
+.pp10 { animation-delay: 0.07s; bottom: 24px; }
+.pp11 { animation-delay: 0.35s; }
+.pp12 { animation-delay: 0.20s; bottom: 22px; }
 
 /* Results */
 .result-bear { display: flex; justify-content: center; margin: 20px 0 12px; }

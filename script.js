@@ -13,7 +13,8 @@ const SUPABASE_ANON = 'DEIN_SUPABASE_ANON_KEY';
 // CREATE TABLE quiz_results (
 //   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
 //   name text NOT NULL,
-//   truck_number text NOT NULL,
+//   wagon_number text NOT NULL,
+//   wagon_name text NOT NULL,
 //   score integer NOT NULL,
 //   wrong_count integer NOT NULL,
 //   completed_at timestamptz DEFAULT now()
@@ -267,7 +268,8 @@ let score = 0;
 let answered = false;
 let wrongAnswers = [];
 let participantName = '';
-let truckNumber = '';
+let wagonNumber = '';
+let wagonName = '';
 
 // Screens
 const startScreen    = document.getElementById('start-screen');
@@ -289,17 +291,19 @@ function show(screen) {
 }
 
 function handleRegister() {
-  const nameInput  = document.getElementById('input-name');
-  const truckInput = document.getElementById('input-truck');
-  const errEl      = document.getElementById('reg-error');
+  const nameInput   = document.getElementById('input-name');
+  const numInput    = document.getElementById('input-truck-number');
+  const nameWInput  = document.getElementById('input-truck-name');
+  const errEl       = document.getElementById('reg-error');
 
-  if (!nameInput.value.trim() || !truckInput.value.trim()) {
+  if (!nameInput.value.trim() || !numInput.value.trim() || !nameWInput.value.trim()) {
     errEl.style.display = 'block';
     return;
   }
   errEl.style.display = 'none';
   participantName = nameInput.value.trim();
-  truckNumber     = truckInput.value.trim();
+  wagonNumber     = numInput.value.trim();
+  wagonName       = nameWInput.value.trim();
   startQuiz();
 }
 
@@ -400,20 +404,23 @@ function nextQuestion() {
 
 // ===== PARADE =====
 function updateParade() {
-  const progress = currentIndex / questions.length;
-  // Lead truck: startet bei -5%, erreicht 82% beim Brandenburger Tor
-  const L = -5 + progress * 87;
+  const L = -5 + (currentIndex / questions.length) * 87;
 
-  setLeft('ptruck1',  L);
-  setLeft('pperson1', L - 10);
-  setLeft('pperson2', L - 15);
-  setLeft('ptruck2',  L - 22);
-  setLeft('pperson3', L - 30);
-  setLeft('pperson4', L - 34);
-  setLeft('ptruck3',  L - 42);
-  setLeft('pperson5', L - 50);
-  setLeft('pperson6', L - 54);
-  setLeft('pperson7', L - 60);
+  setLeft('ptruck1',   L);
+  setLeft('pperson1',  L - 11);
+  setLeft('pperson2',  L - 16);
+  setLeft('pperson3',  L - 21);
+  setLeft('pperson4',  L - 26);
+  setLeft('ptruck2',   L - 33);
+  setLeft('pperson5',  L - 43);
+  setLeft('pperson6',  L - 48);
+  setLeft('pperson7',  L - 53);
+  setLeft('ptruck3',   L - 60);
+  setLeft('pperson8',  L - 68);
+  setLeft('pperson9',  L - 73);
+  setLeft('pperson10', L - 78);
+  setLeft('pperson11', L - 83);
+  setLeft('pperson12', L - 88);
 }
 
 function setLeft(id, pct) {
@@ -488,7 +495,8 @@ async function saveResult() {
   try {
     const { error } = await db.from('quiz_results').insert({
       name:         participantName,
-      truck_number: truckNumber,
+      wagon_number: wagonNumber,
+      wagon_name:   wagonName,
       score:        score,
       wrong_count:  wrongAnswers.length
     });
@@ -506,9 +514,11 @@ function restartQuiz() {
   removeConfetti();
   // Formular-Felder leeren für neuen Durchlauf
   document.getElementById('input-name').value = '';
-  document.getElementById('input-truck').value = '';
+  document.getElementById('input-truck-number').value = '';
+  document.getElementById('input-truck-name').value = '';
   participantName = '';
-  truckNumber = '';
+  wagonNumber = '';
+  wagonName = '';
   show(registerScreen);
 }
 
