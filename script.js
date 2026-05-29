@@ -400,23 +400,20 @@ function nextQuestion() {
 
 // ===== PARADE =====
 function updateParade() {
-  const total = questions.length;
-  const progress = currentIndex / total; // 0 → 1
+  const progress = currentIndex / questions.length;
+  // Lead truck: startet bei -5%, erreicht 82% beim Brandenburger Tor
+  const L = -5 + progress * 87;
 
-  // Lead truck: starts at -5%, reaches 82% (just before finish line at 88%)
-  const leadPct = -5 + progress * 87;
-  // Trucks behind: offset by 18% and 36% respectively
-  const t2pct = leadPct - 18;
-  const t3pct = leadPct - 36;
-  // People between trucks
-  const p1pct = leadPct - 10;
-  const p2pct = leadPct - 24;
-
-  setLeft('ptruck1',  leadPct);
-  setLeft('ptruck2',  t2pct);
-  setLeft('ptruck3',  t3pct);
-  setLeft('pperson1', p1pct);
-  setLeft('pperson2', p2pct);
+  setLeft('ptruck1',  L);
+  setLeft('pperson1', L - 10);
+  setLeft('pperson2', L - 15);
+  setLeft('ptruck2',  L - 22);
+  setLeft('pperson3', L - 30);
+  setLeft('pperson4', L - 34);
+  setLeft('ptruck3',  L - 42);
+  setLeft('pperson5', L - 50);
+  setLeft('pperson6', L - 54);
+  setLeft('pperson7', L - 60);
 }
 
 function setLeft(id, pct) {
