@@ -419,8 +419,7 @@ function updateParade() {
 
 function setLeft(id, pct) {
   const el = document.getElementById(id);
-  // translateX in vw statt left in % → kein iOS-Horizontalscroll
-  if (el) el.style.transform = 'translateX(' + pct + 'vw)';
+  if (el) el.style.left = pct + '%';
 }
 
 // ===== RESULTS =====
