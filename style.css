@@ -19,6 +19,7 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: clip; /* clip statt hidden – blockiert nicht den iOS-Vertikalscroll */
 }
 
 body {
@@ -93,13 +94,18 @@ body {
 }
 .start-title {
   font-family: 'Paytone One', sans-serif;
-  font-size: clamp(34px, 9vw, 52px);
+  font-size: clamp(26px, 7.5vw, 52px);
   color: var(--card);
   text-align: center;
-  line-height: 1.05;
-  letter-spacing: -1px;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
   margin-bottom: 4px;
   text-shadow: 3px 3px 0 rgba(0,0,0,0.25);
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
 }
 .start-subtitle {
   font-size: clamp(14px, 3.5vw, 18px);
