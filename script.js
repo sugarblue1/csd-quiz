@@ -429,38 +429,37 @@ async function showResults() {
   document.getElementById('progress-bar').style.width = '100%';
   document.getElementById('score-number').textContent = score;
 
-  const pct = (score / questions.length) * 100;
-  let title, msg;
-  if (pct === 100) {
-    title = 'Perfekt!';
-    msg = 'Alle 20 Fragen richtig! Du bist vollständig vorbereitet. Wir sehen uns am 25. Juli!';
-    launchConfetti();
-  } else if (pct >= 80) {
-    title = 'Sehr gut!';
-    msg = 'Fast alle Fragen richtig. Schau dir die falsch beantworteten kurz an und du bist top!';
-    launchConfetti();
-  } else if (pct >= 60) {
-    title = 'Gut gemacht!';
-    msg = 'Solide Grundlage! Die markierten Fragen noch einmal lesen und du hast alles drauf.';
-  } else if (pct >= 40) {
-    title = 'Noch etwas Luft';
-    msg = 'Einige Regeln sitzen noch nicht. Ein zweiter Versuch lohnt sich!';
+  const passed = score >= 16; // 80% = 16 von 20
+  const restartBtn = document.getElementById('restart-btn');
+
+  if (!passed) {
+    document.getElementById('result-title').textContent = 'Nicht bestanden';
+    document.getElementById('result-message').textContent =
+      'Du brauchst mindestens 16 von 20 Punkten (80%). Schau dir die richtigen Antworten an und versuch es gleich nochmal!';
+    document.getElementById('result-stars').innerHTML = '';
+    restartBtn.textContent = 'Nochmal versuchen';
+    restartBtn.onclick = retakeQuiz;
   } else {
-    title = 'Auf ins Lernen!';
-    msg = 'Die Teilnahmebedingungen bitte noch einmal gründlich durchlesen. Du schaffst das!';
+    const title = score === 20 ? 'Perfekt!' : 'Bestanden!';
+    const msg   = score === 20
+      ? 'Alle 20 Fragen richtig! Perfekt vorbereitet. Wir sehen uns am 25. Juli!'
+      : 'Gut gemacht! Du hast die Schulung bestanden. Wir sehen uns am 25. Juli!';
+    document.getElementById('result-title').textContent = title;
+    document.getElementById('result-message').textContent = msg;
+    launchConfetti();
+
+    const starsEl = document.getElementById('result-stars');
+    starsEl.innerHTML = '';
+    const fullStars = Math.round((score / questions.length) * 5);
+    for (let i = 0; i < 5; i++) {
+      const f = i < fullStars;
+      starsEl.innerHTML += `<svg viewBox="0 0 24 24" fill="${f ? '#FFD700' : 'rgba(255,255,255,0.3)'}" stroke="${f ? '#e6a800' : 'rgba(255,255,255,0.3)'}" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+    }
+    restartBtn.textContent = 'Nochmal versuchen';
+    restartBtn.onclick = restartQuiz;
   }
 
-  document.getElementById('result-title').textContent = title;
-  document.getElementById('result-message').textContent = msg;
-
-  const fullStars = Math.round((score / questions.length) * 5);
-  const starsEl = document.getElementById('result-stars');
-  starsEl.innerHTML = '';
-  for (let i = 0; i < 5; i++) {
-    const f = i < fullStars;
-    starsEl.innerHTML += `<svg viewBox="0 0 24 24" fill="${f ? '#FFD700' : '#ddd'}" stroke="${f ? '#e6a800' : '#ccc'}" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
-  }
-
+  // Falsche Antworten immer anzeigen (zum Lernen)
   const wrongSection = document.getElementById('wrong-section');
   const wrongList    = document.getElementById('wrong-list');
   wrongList.innerHTML = '';
@@ -477,6 +476,19 @@ async function showResults() {
   }
 
   await saveResult();
+}
+
+function retakeQuiz() {
+  // Quiz mit gleichem Namen/Wagen direkt nochmal starten – keine neue Anmeldung
+  removeConfetti();
+  currentIndex = 0;
+  score = 0;
+  answered = false;
+  wrongAnswers = [];
+  paradeStrip.style.display = 'block';
+  updateParade();
+  show(quizScreen);
+  renderQuestion();
 }
 
 async function saveResult() {
